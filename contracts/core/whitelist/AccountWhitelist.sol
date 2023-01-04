@@ -26,12 +26,12 @@ contract AccountWhitelist is Ownable, SimpleInitializable {
     }
 
     function addAccountToWhitelist(address account_) external whenInitialized onlyOwner {
-        require(_accounts.add(account_), "WL: account already included");
+        require(_accounts.add(account_), "AW: account already included");
         emit AccountAdded(account_);
     }
 
     function removeAccountFromWhitelist(address account_) external whenInitialized onlyOwner {
-        require(_accounts.remove(account_), "WL: account already excluded");
+        require(_accounts.remove(account_), "AW: account already excluded");
         emit AccountRemoved(account_);
     }
 

@@ -20,7 +20,7 @@ abstract contract SimpleInitializable {
     }
 
     modifier onlyInitializer() {
-        require(msg.sender == initializer(), "IN: sender not initializer");
+        require(msg.sender == initializer(), "SI: sender not initializer");
         _;
     }
 
@@ -43,10 +43,10 @@ abstract contract SimpleInitializable {
     }
 
     function _ensureInitialized() internal view {
-        require(initialized(), "IN: not initialized");
+        require(initialized(), "SI: not initialized");
     }
 
     function _ensureNotInitialized() internal view {
-        require(!initialized(), "IN: already initialized");
+        require(!initialized(), "SI: already initialized");
     }
 }
