@@ -112,7 +112,7 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         _useNonce(step_.account, step_.nonce);
         _usePermits(step_.account, permits_);
 
-        uint256[] memory outAmounts = _performCall(step_.account, step_.useDelegate, step_.ins, inAmounts_, step_.outs, call_);
+        uint256[] memory outAmounts = _performCall(step_.account, step_.sponsor, step_.ins, inAmounts_, step_.outs, call_);
         _performUses(step_.uses, useArgs_, step_.outs, outAmounts);
     }
 
@@ -131,12 +131,12 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         PermitResolver(permit_.resolver).resolvePermit(permit_.token, account_, permit_.amount, permit_.deadline, permit_.signature);
     }
 
-    function _performCall(address account_, bool useDelegate_, TokenCheck[] calldata ins_, uint256[] calldata inAmounts_, TokenCheck[] calldata outs_, Call calldata call_) private returns (uint256[] memory outAmounts) {
+    function _performCall(address account_, address sponsor_, TokenCheck[] calldata ins_, uint256[] calldata inAmounts_, TokenCheck[] calldata outs_, Call calldata call_) private returns (uint256[] memory outAmounts) {
         NativeClaimer.State memory nativeClaimer;
-        return _performCallWithReturn(account_, useDelegate_, ins_, inAmounts_, outs_, call_, nativeClaimer);
+        return _performCallWithReturn(account_, sponsor_, ins_, inAmounts_, outs_, call_, nativeClaimer);
     }
 
-    function _performCallWithReturn(address account_, bool useDelegate_, TokenCheck[] calldata ins_, uint256[] calldata inAmounts_, TokenCheck[] calldata outs_, Call calldata call_, NativeClaimer.State memory nativeClaimer_) private returnUnclaimedNative(nativeClaimer_) returns (uint256[] memory outAmounts) {
+    function _performCallWithReturn(address account_, address sponsor_, TokenCheck[] calldata ins_, uint256[] calldata inAmounts_, TokenCheck[] calldata outs_, Call calldata call_, NativeClaimer.State memory nativeClaimer_) private returnUnclaimedNative(nativeClaimer_) returns (uint256[] memory outAmounts) {
         for (uint256 i = 0; i < ins_.length; i++)
             TokenChecker.checkMinMax(ins_[i], inAmounts_[i]);
 
@@ -144,8 +144,9 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         for (uint256 i = 0; i < ins_.length; i++)
             inAmountsByToken.add(ins_[i].token, inAmounts_[i]);
 
-        if (useDelegate_) _claimAccountDelegateCallIns(account_, inAmountsByToken);
-        else _claimAccountCallIns(account_, inAmountsByToken, nativeClaimer_);
+        address delegate = DelegateManager(_delegateManager).predictDelegateDeploy(account_);
+        if (sponsor_ == delegate) _claimDelegateCallIns(account_, inAmountsByToken);
+        else _claimSponsorCallIns(sponsor_, inAmountsByToken, nativeClaimer_);
 
         AccountCounter.State memory outBalances = AccountCounter.create(outs_.length);
         for (uint256 i = 0; i < outs_.length; i++) {
@@ -182,7 +183,7 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         }
     }
 
-    function _claimAccountDelegateCallIns(address account_, AccountCounter.State memory inAmountsByToken_) private {
+    function _claimDelegateCallIns(address account_, AccountCounter.State memory inAmountsByToken_) private {
         Withdraw[] memory withdraws = new Withdraw[](inAmountsByToken_.size());
         for (uint256 i = 0; i < inAmountsByToken_.size(); i++)
             withdraws[i] = Withdraw({token: inAmountsByToken_.accountAt(i), amount: inAmountsByToken_.getAt(i), to: address(this)});
@@ -192,9 +193,9 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         DelegateManager(_delegateManager).withdraw(account_, withdraws);
     }
 
-    function _claimAccountCallIns(address account_, AccountCounter.State memory inAmountsByToken_, NativeClaimer.State memory nativeClaimer_) private {
+    function _claimSponsorCallIns(address sponsor_, AccountCounter.State memory inAmountsByToken_, NativeClaimer.State memory nativeClaimer_) private {
         for (uint256 i = 0; i < inAmountsByToken_.size(); i++)
-            TokenHelper.transferToThis(inAmountsByToken_.accountAt(i), account_, inAmountsByToken_.getAt(i), nativeClaimer_);
+            TokenHelper.transferToThis(inAmountsByToken_.accountAt(i), sponsor_, inAmountsByToken_.getAt(i), nativeClaimer_);
     }
 
     function _approveAssets(AccountCounter.State memory amountsByToken_, address spender_) private returns (uint256 sendValue) {
