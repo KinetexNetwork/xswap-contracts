@@ -20,7 +20,7 @@ struct SwapStep {
     uint256 chain;
     address swapper;
     address account;
-    bool useDelegate;
+    address sponsor;
     uint256 nonce;
     uint256 deadline;
     TokenCheck[] ins;

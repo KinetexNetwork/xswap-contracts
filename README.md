@@ -70,6 +70,10 @@ into `msg.sender` allowance.
 
 `PermitResolver`-compatible contract for DAI token implementation of permit.
 
+[__contracts/core/permit/UniswapPermitResolver.sol__](contracts/core/permit/UniswapPermitResolver.sol)
+
+`PermitResolver`-compatible contract for permit via [Uniswap's Permit2](https://github.com/Uniswap/permit2).
+
 [__contracts/core/permit/SignatureDecomposer.sol__](contracts/core/permit/SignatureDecomposer.sol)
 
 Helper contract for work with signature components (`r`, `s`, `v`) in permit
@@ -287,7 +291,7 @@ step deadline, chain, swapper contract, nonce. After that it resolves permits
 with `_usePermits` proceeding with `_performCall` and `_performUses`.
 
 The `_performCall` firstly transfers assets as defined by the swap structure.
-There are two main flows (selected based on the `useDelegate` flag):
+There are two main flows (selected based on the `sponsor` value):
 
 * claim by approve (or `msg.value` in case of native coin)
 * claim from delegate contract (deploying it if necessary)
@@ -313,7 +317,7 @@ Defines swap-related data structures shared across multiple files:
   `SwapStep`) and outputs `outs`
 * `SwapStep` - describes swap sub-operation on a certain `chain`. Must be
   performed by `swapper` contract. Specifies on-chain call inputs & outputs
-  (`ins`, `useDelegate`, `outs`) and protocol `uses`. Also includes user
+  (`ins`, `sponsor`, `outs`) and protocol `uses`. Also includes user
   `account`, `nonce`, and `deadline` for security
 * `Swap` - describes swap operation. First step's `chain`, `swapper`, and
   `account` values are used for the signature validation
@@ -355,10 +359,10 @@ Value origins:
   `keccak256("xSwap")`
 * `0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6` is
   `keccak256("1")`
-* `0xba1e9d0b1bee57631ad5f99eac149c1229822508d3dfc4f8fa2c5089bb99c874` is
-  `keccak256("Swap(SwapStep[] steps)SwapStep(uint256 chain,address swapper,address account,bool useDelegate,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
-* `0x973db6284d4ead3ce5e0ee0d446a483b1b5ff8cd93a2b86dbd0a9f03a6cefc8a` is
-  `keccak256("SwapStep(uint256 chain,address swapper,address account,bool useDelegate,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
+* `0xa0fcb9f5b4b10be93f0ec233d8afa08db6106f74c8d76e4937a51f090d97eb4e` is
+  `keccak256("Swap(SwapStep[] steps)SwapStep(uint256 chain,address swapper,address account,address sponsor,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
+* `0xd8f16a58e8d629b9dd177c9b6540875e79053382b1b1d8054168c3c415798f24` is
+  `keccak256("SwapStep(uint256 chain,address swapper,address account,address sponsor,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
 * `0x382391664c9ae06333b02668b6d763ab547bd70c71636e236fdafaacf1e55bdd` is
   `keccak256("TokenCheck(address token,uint256 minAmount,uint256 maxAmount)")`
 * `0x192f17c5e66907915b200bca0d866184770ff7faf25a0b4ccd2ef26ebd21725a` is
