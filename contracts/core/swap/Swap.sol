@@ -19,7 +19,6 @@ struct TokenUse {
 struct SwapStep {
     uint256 chain;
     address swapper;
-    address account;
     address sponsor;
     uint256 nonce;
     uint256 deadline;
@@ -29,6 +28,7 @@ struct SwapStep {
 }
 
 struct Swap {
+    address account;
     SwapStep[] steps;
 }
 

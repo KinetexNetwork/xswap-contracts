@@ -68,29 +68,29 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         _checkSwapEnabled();
         require(params_.stepIndex < params_.swap.steps.length, "SW: no step with provided index");
         SwapStep calldata step = params_.swap.steps[params_.stepIndex];
-        _validateSwapSignature(params_.swap, params_.swapSignature, step);
-        _performSwapStep(step, params_.permits, params_.inAmounts, params_.call, params_.useArgs);
+        _validateSwapSignature(params_.swap, params_.swapSignature);
+        _performSwapStep(params_.swap.account, step, params_.permits, params_.inAmounts, params_.call, params_.useArgs);
     }
 
     function swapStealth(StealthSwapParams calldata params_) external payable {
         _checkSwapEnabled();
         _validateStealthSwapSignature(params_.swap, params_.swapSignature, params_.step);
-        _performSwapStep(params_.step, params_.permits, params_.inAmounts, params_.call, params_.useArgs);
+        _performSwapStep(params_.swap.account, params_.step, params_.permits, params_.inAmounts, params_.call, params_.useArgs);
     }
 
     function _checkSwapEnabled() internal view virtual {} // Nothing is hindering by default
 
-    function _validateSwapSignature(Swap calldata swap_, bytes calldata swapSignature_, SwapStep calldata step_) private view {
+    function _validateSwapSignature(Swap calldata swap_, bytes calldata swapSignature_) private view {
         if (_isSignaturePresented(swapSignature_))
             SwapSignatureValidator(_swapSignatureValidator).validateSwapSignature(swap_, swapSignature_);
-        else _validateStepManualCaller(step_);
+        else _validateSwapManualCaller(swap_.account);
     }
 
     function _validateStealthSwapSignature(StealthSwap calldata stealthSwap_, bytes calldata stealthSwapSignature_, SwapStep calldata step_) private view {
         if (_isSignaturePresented(stealthSwapSignature_))
             SwapSignatureValidator(_swapSignatureValidator).validateStealthSwapStepSignature(step_, stealthSwap_, stealthSwapSignature_);
         else {
-            _validateStepManualCaller(step_);
+            _validateSwapManualCaller(stealthSwap_.account);
             SwapSignatureValidator(_swapSignatureValidator).findStealthSwapStepIndex(step_, stealthSwap_); // Ensure presented
         }
     }
@@ -99,20 +99,20 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         return signature_.length > 0;
     }
 
-    function _validateStepManualCaller(SwapStep calldata step_) private view {
-        require(msg.sender == step_.account, "SW: caller must be step account");
+    function _validateSwapManualCaller(address account_) private view {
+        require(msg.sender == account_, "SW: caller must be swap account");
     }
 
-    function _performSwapStep(SwapStep calldata step_, Permit[] calldata permits_, uint256[] calldata inAmounts_, Call calldata call_, bytes[] calldata useArgs_) private {
+    function _performSwapStep(address account_, SwapStep calldata step_, Permit[] calldata permits_, uint256[] calldata inAmounts_, Call calldata call_, bytes[] calldata useArgs_) private {
         require(step_.deadline > block.timestamp, "SW: swap step expired");
         require(step_.chain == block.chainid, "SW: wrong swap step chain");
         require(step_.swapper == address(this), "SW: wrong swap step swapper");
         require(step_.ins.length == inAmounts_.length, "SW: in amounts length mismatch");
 
-        _useNonce(step_.account, step_.nonce);
-        _usePermits(step_.account, permits_);
+        _useNonce(account_, step_.nonce);
+        _usePermits(account_, permits_);
 
-        uint256[] memory outAmounts = _performCall(step_.account, step_.sponsor, step_.ins, inAmounts_, step_.outs, call_);
+        uint256[] memory outAmounts = _performCall(account_, step_.sponsor, step_.ins, inAmounts_, step_.outs, call_);
         _performUses(step_.uses, useArgs_, step_.outs, outAmounts);
     }
 
@@ -127,8 +127,12 @@ contract Swapper is NativeReceiver, NativeReturnMods {
     }
 
     function _usePermit(address account_, Permit calldata permit_) private {
-        require(AccountWhitelist(_permitResolverWhitelist).isAccountWhitelisted(permit_.resolver), "SW: permitter not whitelisted");
+        require(_isWhitelistedResolver(permit_.resolver), "SW: permitter not whitelisted");
         PermitResolver(permit_.resolver).resolvePermit(permit_.token, account_, permit_.amount, permit_.deadline, permit_.signature);
+    }
+
+    function _isWhitelistedResolver(address resolver_) private view returns (bool) {
+        return AccountWhitelist(_permitResolverWhitelist).isAccountWhitelisted(resolver_);
     }
 
     function _performCall(address account_, address sponsor_, TokenCheck[] calldata ins_, uint256[] calldata inAmounts_, TokenCheck[] calldata outs_, Call calldata call_) private returns (uint256[] memory outAmounts) {
@@ -145,6 +149,7 @@ contract Swapper is NativeReceiver, NativeReturnMods {
             inAmountsByToken.add(ins_[i].token, inAmounts_[i]);
 
         address delegate = DelegateManager(_delegateManager).predictDelegateDeploy(account_);
+        require(sponsor_ == account_ || sponsor_ == delegate || _isWhitelistedResolver(sponsor_), "SW: sponsor not allowed");
         if (sponsor_ == delegate) _claimDelegateCallIns(account_, inAmountsByToken);
         else _claimSponsorCallIns(sponsor_, inAmountsByToken, nativeClaimer_);
 

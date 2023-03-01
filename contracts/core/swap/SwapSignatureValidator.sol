@@ -8,7 +8,7 @@ contract SwapSignatureValidator {
     function validateSwapSignature(Swap calldata swap_, bytes calldata swapSignature_) public pure {
         require(swap_.steps.length > 0, "SV: swap has no steps");
         address signer = ECDSA.recover(_hashTypedDataV4(_hashSwap(swap_), swap_.steps[0].chain, swap_.steps[0].swapper), swapSignature_);
-        require(signer == swap_.steps[0].account, "SV: invalid swap signature");
+        require(signer == swap_.account, "SV: invalid swap signature");
     }
 
     function validateStealthSwapStepSignature(SwapStep calldata swapStep_, StealthSwap calldata stealthSwap_, bytes calldata stealthSwapSignature_) public pure returns (uint256 stepIndex) {
@@ -30,7 +30,7 @@ contract SwapSignatureValidator {
     }
 
     function _hashSwap(Swap calldata swap_) private pure returns (bytes32) {
-        return keccak256(abi.encode(0xa0fcb9f5b4b10be93f0ec233d8afa08db6106f74c8d76e4937a51f090d97eb4e, _hashSwapSteps(swap_.steps)));
+        return keccak256(abi.encode(0x09b148e744e0e1801943dd449b1fa4d29b7172ff190d22f95b1bb7e5df52e37d, swap_.account, _hashSwapSteps(swap_.steps)));
     }
 
     function _hashSwapSteps(SwapStep[] calldata swapSteps_) private pure returns (bytes32) {
@@ -44,7 +44,7 @@ contract SwapSignatureValidator {
     }
 
     function _hashSwapStep(SwapStep calldata swapStep_) private pure returns (bytes32) {
-        return keccak256(abi.encode(0xd8f16a58e8d629b9dd177c9b6540875e79053382b1b1d8054168c3c415798f24, swapStep_.chain, swapStep_.swapper, swapStep_.account, swapStep_.sponsor, swapStep_.nonce, swapStep_.deadline, _hashTokenChecks(swapStep_.ins), _hashTokenChecks(swapStep_.outs), _hashTokenUses(swapStep_.uses)));
+        return keccak256(abi.encode(0x5302e49a52f1122ff531999c0f7afcb4d2bfefa7562dfefbdb7ed114d495ea6a, swapStep_.chain, swapStep_.swapper, swapStep_.sponsor, swapStep_.nonce, swapStep_.deadline, _hashTokenChecks(swapStep_.ins), _hashTokenChecks(swapStep_.outs), _hashTokenUses(swapStep_.uses)));
     }
 
     function _hashTokenChecks(TokenCheck[] calldata tokenChecks_) private pure returns (bytes32) {

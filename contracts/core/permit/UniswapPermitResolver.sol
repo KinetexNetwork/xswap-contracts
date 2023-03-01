@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.16;
 
-import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {TokenHelper} from "../asset/TokenHelper.sol";
 
 struct TokenPermissions { address token; uint256 amount; }
 struct PermitTransferFrom { TokenPermissions permitted; uint256 nonce; uint256 deadline; }
@@ -22,6 +22,7 @@ contract UniswapPermitResolver {
         require(msg.sender == xSwap, "UP: caller must be xSwap");
         uint256 nonce = uint256(keccak256(abi.encodePacked(token_, from_, amount_, deadline_, address(this))));
         Permit2(PERMIT2).permitTransferFrom(PermitTransferFrom({permitted: TokenPermissions({token: token_, amount: amount_}), nonce: nonce, deadline: deadline_}), SignatureTransferDetails({to: address(this), requestedAmount: amount_}), from_, signature_);
-        SafeERC20.safeApprove(IERC20(token_), msg.sender, amount_);
+        TokenHelper.revokeOfThis(token_, msg.sender);
+        TokenHelper.approveOfThis(token_, msg.sender, amount_);
     }
 }
