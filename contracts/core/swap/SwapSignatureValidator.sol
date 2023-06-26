@@ -30,7 +30,7 @@ contract SwapSignatureValidator {
     }
 
     function _hashSwap(Swap calldata swap_) private pure returns (bytes32) {
-        return keccak256(abi.encode(0x09b148e744e0e1801943dd449b1fa4d29b7172ff190d22f95b1bb7e5df52e37d, swap_.account, _hashSwapSteps(swap_.steps)));
+        return keccak256(abi.encode(0xf4bc8c888fdd1a399fd19333c97474dda88f37f0019ac12d0594786b0d11e9f4, swap_.account, _hashSwapSteps(swap_.steps)));
     }
 
     function _hashSwapSteps(SwapStep[] calldata swapSteps_) private pure returns (bytes32) {
@@ -44,7 +44,7 @@ contract SwapSignatureValidator {
     }
 
     function _hashSwapStep(SwapStep calldata swapStep_) private pure returns (bytes32) {
-        return keccak256(abi.encode(0x5302e49a52f1122ff531999c0f7afcb4d2bfefa7562dfefbdb7ed114d495ea6a, swapStep_.chain, swapStep_.swapper, swapStep_.sponsor, swapStep_.nonce, swapStep_.deadline, _hashTokenChecks(swapStep_.ins), _hashTokenChecks(swapStep_.outs), _hashTokenUses(swapStep_.uses)));
+        return keccak256(abi.encode(0x725059b6e8d0caeb5f3e12ecb3d05d2f1964c25eae2e6658077a7a82d15347a1, swapStep_.chain, swapStep_.swapper, swapStep_.sponsor, swapStep_.executor, swapStep_.nonce, swapStep_.deadline, _hashTokenChecks(swapStep_.ins), _hashTokenChecks(swapStep_.outs), _hashTokenUses(swapStep_.uses)));
     }
 
     function _hashTokenChecks(TokenCheck[] calldata tokenChecks_) private pure returns (bytes32) {

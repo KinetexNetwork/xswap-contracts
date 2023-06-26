@@ -107,6 +107,7 @@ contract Swapper is NativeReceiver, NativeReturnMods {
         require(step_.deadline > block.timestamp, "SW: swap step expired");
         require(step_.chain == block.chainid, "SW: wrong swap step chain");
         require(step_.swapper == address(this), "SW: wrong swap step swapper");
+        require(step_.executor == tx.origin, "SW: wrong swap step executor");
         require(step_.ins.length == inAmounts_.length, "SW: in amounts length mismatch");
 
         _useNonce(account_, step_.nonce);

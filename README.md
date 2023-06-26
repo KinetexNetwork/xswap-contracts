@@ -359,10 +359,10 @@ Value origins:
   `keccak256("xSwap")`
 * `0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6` is
   `keccak256("1")`
-* `0x09b148e744e0e1801943dd449b1fa4d29b7172ff190d22f95b1bb7e5df52e37d` is
-  `keccak256("Swap(address account,SwapStep[] steps)SwapStep(uint256 chain,address swapper,address sponsor,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
-* `0x5302e49a52f1122ff531999c0f7afcb4d2bfefa7562dfefbdb7ed114d495ea6a` is
-  `keccak256("SwapStep(uint256 chain,address swapper,address sponsor,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
+* `0xf4bc8c888fdd1a399fd19333c97474dda88f37f0019ac12d0594786b0d11e9f4` is
+  `keccak256("Swap(address account,SwapStep[] steps)SwapStep(uint256 chain,address swapper,address sponsor,address executor,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
+* `0x725059b6e8d0caeb5f3e12ecb3d05d2f1964c25eae2e6658077a7a82d15347a1` is
+  `keccak256("SwapStep(uint256 chain,address swapper,address sponsor,address executor,uint256 nonce,uint256 deadline,TokenCheck[] ins,TokenCheck[] outs,TokenUse[] uses)TokenCheck(address token,uint256 minAmount,uint256 maxAmount)TokenUse(address protocol,uint256 chain,address account,uint256[] inIndices,TokenCheck[] outs,bytes args)")`
 * `0x382391664c9ae06333b02668b6d763ab547bd70c71636e236fdafaacf1e55bdd` is
   `keccak256("TokenCheck(address token,uint256 minAmount,uint256 maxAmount)")`
 * `0x192f17c5e66907915b200bca0d866184770ff7faf25a0b4ccd2ef26ebd21725a` is
